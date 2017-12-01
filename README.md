@@ -1,3 +1,6 @@
-# hello-world
-#This is a readme file about hello-world
-#The reposity is used to do exercise
+# TGEngine  
+## Test Go Engine  
+This is a game engine writen by go.  
+The Author is JuZhen  
+email: 1312921719@qq.com  
+
