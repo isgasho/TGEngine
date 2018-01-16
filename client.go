@@ -7,8 +7,8 @@ package main
 
 import (
 	"errors"
-	"github.com/xtaci/kcp-go"
 	"log"
+	"net"
 	"net/rpc"
 	"time"
 )
@@ -44,9 +44,11 @@ func checkError(err error, flag int) { //检查错误
 }
 
 func createLoginappRpcClient() *rpc.Client { //创建与Loginapp的rpc连接
-	conn, err := kcp.Dial("172.17.0.2:1234") //建立连接
+	tcpAddr, _ := net.ResolveTCPAddr("tcp", "172.17.0.2:1234")
+	conn, err := net.DialTCP("tcp", nil, tcpAddr)
 	checkError(err, PANIC)
 	conn.SetDeadline(time.Now().Add(time.Millisecond * 460)) //设置超时
+	conn.SetNoDelay(true)                                    //关闭delayack和nagle
 	rpcClient := rpc.NewClient(conn)                         //建立rpc连接
 	isConnected := false
 	rpcClient.Call("Loginapp.ConnectionTest", 1, &isConnected) //测试连接是否成功

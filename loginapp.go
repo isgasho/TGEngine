@@ -6,14 +6,15 @@
 package main
 
 import (
-	"database/sql"            //数据库接口
-	"errors"                  //自定义错误
-	_ "github.com/lib/pq"     //postsql接口实现
-	"github.com/xtaci/kcp-go" //kcp开源库
-	"log"                     //日志库
-	"net/rpc"                 //远程调用库
-	"sync"                    //同步库
-	"sync/atomic"             //原子计数器
+	"database/sql"        //数据库接口
+	"errors"              //自定义错误
+	_ "github.com/lib/pq" //postsql接口实现
+	"log"                 //日志库
+	"net"                 //网络库
+	"net/rpc"             //远程调用库
+	"sync"                //同步库
+	"sync/atomic"         //原子计数器
+	"time"                //时间库
 )
 
 func init() { //初始化函数,在main()前自动执行
@@ -64,13 +65,14 @@ func createRpcServer() { //创建rpc服务器
 	myLoginapp := new(Loginapp)     //rpc调用的接口
 	err := rpc.Register(myLoginapp) //注册rcp调用接口
 	checkError(err, PANIC)
-	listener, err := kcp.Listen(":1234") //监听kcp
+	tcpAddr, _ := net.ResolveTCPAddr("tcp", ":1234")
+	listener, err := net.ListenTCP("tcp", tcpAddr) //监听kcp
 	checkError(err, PANIC)
-	defer listener.Close()
 	rpc.Accept(listener) //rpc调用接口监听kcp
-	conn, err := listener.Accept()
+	conn, err := listener.AcceptTCP()
+	conn.SetNoDelay(true)                                    //关闭delayack和negle算法
+	conn.SetDeadline(time.Now().Add(time.Millisecond * 460)) //超时设置460ms
 	checkError(err, ERROR)
-	defer conn.Close()
 }
 
 type Loginapp int //login模块函数接口
